@@ -1,24 +1,27 @@
 import { NextFunction, Request, Response } from 'express';
 import axios from 'axios';
+import logger from '../services/logger.service';
 
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
 	const authCookie = req?.cookies?.loginToken;
-	if (authCookie) return res.status(401).send('Not Authenticated');
+	if (!authCookie) return res.status(401).send('Not Authenticated');
 	try {
-		const response = await axios.post(
-			process.env.REMOTE_AUTH_SERVICE_URL || '',
-			{},
+		const response = await axios.get(
+			`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate` || '',
 			{ headers: { Cookie: `loginToken=${authCookie}` } }
 		);
 		console.log(response.data);
-		if (response.status !== 200) {
+		if (response.status !== 200 || !response.data) {
 			return res.status(401).send('Token is invalid');
 		}
 		// The token is valid, proceed to the next middleware or route handler
 		return next();
 	} catch (err) {
+		logger.error('While verifying authorization');
 		return res
 			.status(401)
 			.send('An error occurred while verifying authorization');
 	}
 }
+
+export default requireAuth;
