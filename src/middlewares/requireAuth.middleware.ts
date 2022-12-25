@@ -1,6 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import axios from 'axios';
 import logger from '../services/logger.service';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
 	const authCookie = req?.cookies?.loginToken;

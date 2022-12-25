@@ -25,6 +25,10 @@ if (process.env.NODE_ENV === 'production') {
 	};
 	app.use(cors(corsOptions));
 }
+import chatRoutes from './api/chat/chat.routes';
+app.use('/api/chat', chatRoutes);
+// app.use('/api/file',fileRoutes);
+
 app.get('/**', (req: Request, res: Response) => {
 	res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });

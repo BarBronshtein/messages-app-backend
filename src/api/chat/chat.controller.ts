@@ -5,7 +5,7 @@ import logger from '../../services/logger.service';
 
 async function getChats(req: Request, res: Response) {
 	try {
-		const chats = await chatService.query();
+		const chats = await chatService.query(JSON.parse(req.query.params as string));
 		res.send(chats);
 	} catch (err) {
 		logger.error('Failed to get chats', err);
@@ -25,8 +25,7 @@ async function getChatById(req: Request, res: Response) {
 
 async function updateChat(req: Request, res: Response) {
 	try {
-		const chat = await chatService.getById(req.params.id);
-		const updatedChat = await chatService.update(chat, req.body);
+		const updatedChat = await chatService.update(req.body.chat, req.body.user);
 		res.send(updatedChat);
 	} catch (err) {
 		logger.error('Failed to update chat', err);
