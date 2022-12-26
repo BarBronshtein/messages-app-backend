@@ -13,11 +13,11 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
 			`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate` || '',
 			{ headers: { Cookie: `loginToken=${authCookie}` } }
 		);
-		console.log(response.data);
 		if (response.status !== 200 || !response.data) {
 			return res.status(401).send('Token is invalid');
 		}
-		// The token is valid, proceed to the next middleware or route handler
+		// The token is valid,attach user to res locals, proceed to the next middleware or route handler
+		res.locals.loggedinUser = response.data;
 		return next();
 	} catch (err) {
 		logger.error('While verifying authorization');

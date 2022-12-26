@@ -4,7 +4,7 @@ import * as chatController from './chat.controller';
 const router = Router();
 
 // Middleware that is specific to this router
-// router.use(requreAuth);
+router.use(requreAuth);
 
 router.get('/', chatController.getChats);
 router.get('/:id', chatController.getChatById);
