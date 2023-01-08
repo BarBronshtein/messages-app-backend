@@ -22,19 +22,6 @@ type User = any;
 async function query(user: User | User[]) {
 	try {
 		const collection = await getCollection('conversation');
-		if (Array.isArray(user)) {
-			const chat = await collection
-				.find({
-					participants: {
-						$all: [
-							{ $elemMatch: { _id: user[0]._id } },
-							{ $elemMatch: { _id: user[1]._id } },
-						],
-					},
-				})
-				.toArray();
-			return chat[0]._id;
-		}
 		const chats = await collection
 			.find({
 				participants: {
@@ -86,8 +73,8 @@ async function update(chat: Chat, curUserId: ObjectId | string) {
 }
 async function add(participants: { _id: string | ObjectId; photo: string }[]) {
 	try {
-		const chat = await query(participants);
-		if (chat) return chat;
+		const chatId = await _findByParticipants(participants);
+		if (chatId) return chatId;
 		const conversationCollection = await getCollection('conversation');
 		const chatCollection = await getCollection('chat');
 		const { insertedId } = await chatCollection.insertOne({ messages: [] });
@@ -109,7 +96,7 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 	try {
 		if (message.file) {
 			// Replace with
-			// fileService.add(message.file)
+			// fileService.update(message.file)
 			const fileCollection = await getCollection('file');
 			const { insertedId } = await fileCollection.insertOne({
 				file: message.file,
@@ -154,4 +141,20 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 		logger.error('While adding message');
 		throw err;
 	}
+}
+
+async function _findByParticipants(users: User[]) {
+	// If the input is multiple users return the chatId
+	const collection = await getCollection('conversation');
+	const chat = await collection
+		.find({
+			participants: {
+				$all: [
+					{ $elemMatch: { _id: users[0]._id } },
+					{ $elemMatch: { _id: users[1]._id } },
+				],
+			},
+		})
+		.toArray();
+	return chat[0]._id;
 }

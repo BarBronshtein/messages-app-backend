@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 import logger from '../../services/logger.service';
 import { connect } from '../../services/s3.service';
-import fs from 'fs';
 dotenv.config();
 
 const BUCKET = process.env.AWS_S3_BUCKET;
@@ -32,19 +31,19 @@ async function getById(fileId: string) {
 		.promise();
 }
 
-async function upload(file: File | Blob) {
-	const filePath = `${file.name || 'asset'}/${_makeId()}`;
-	const key = `${filePath}.${file.type}`;
+async function upload(file: Buffer, fileType: string) {
+	const key = `${_makeId()}/${fileType}`;
 	try {
-		const s3 = await connect();
-		await s3
-			.putObject({
-				Body: file,
-				Bucket: BUCKET,
-				Key: key,
-			})
-			.promise();
+		// const s3 = await connect();
+		// await s3
+		// 	.putObject({
+		// 		Body: file,
+		// 		Bucket: BUCKET,
+		// 		Key: key,
+		// 	})
+		// 	.promise();
 		console.log('Successfully uploaded data to ' + BUCKET + '/' + key);
+		return key;
 	} catch (err) {
 		logger.error('Failed to upload file to s3', err);
 		throw err;
@@ -59,5 +58,3 @@ function _makeId(length = 8) {
 	}
 	return id;
 }
-
-async function readFileAsBuffer(file: File) {}

@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -7,6 +8,7 @@ dotenv.config();
 const app = express();
 
 // Express App Config
+app.use(cookieParser());
 app.use(express.json());
 
 if (process.env.NODE_ENV === 'production') {
@@ -27,7 +29,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 import chatRoutes from './api/chat/chat.routes';
 app.use('/api/chat', chatRoutes);
-// app.use('/api/file',fileRoutes);
+import fileRoutes from './api/file/file.routes';
+app.use('/api/file', fileRoutes);
 
 app.get('/**', (req: Request, res: Response) => {
 	res.sendFile(path.join(__dirname, 'public', 'index.html'));
