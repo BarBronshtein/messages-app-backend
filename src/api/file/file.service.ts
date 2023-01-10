@@ -6,30 +6,8 @@ dotenv.config();
 const BUCKET = process.env.AWS_S3_BUCKET || '';
 
 export const fileService = {
-	getById,
 	upload,
 };
-
-async function getById(fileId: string) {
-	const s3 = await connect();
-	return await s3
-		.getObject(
-			{
-				Bucket: BUCKET,
-				Key: fileId,
-			},
-			(err: any, data: any) => {
-				if (err) {
-					logger.error('Issues when trying to get object from bucket');
-					console.log(err);
-				} else {
-					console.log(data);
-					return data;
-				}
-			}
-		)
-		.promise();
-}
 
 async function upload(file: Buffer, fileType: string) {
 	const key = `chat-assets/${_makeId()}-${fileType}`;
