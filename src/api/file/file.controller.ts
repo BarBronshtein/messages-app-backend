@@ -27,12 +27,14 @@ async function upload(req: Request, res: Response) {
 				fs.readFile(
 					(files.file as formidable.File).filepath,
 					async (err: NodeJS.ErrnoException | null, data: Buffer) => {
+						if ((files.file as formidable.File).size > 5272880)
+							throw new Error('File is too large');
 						if (err) throw new Error(err.message);
 						const url = await fileService.upload(
 							data,
 							(files.file as formidable.File).mimetype?.replace('/', '.') || '.txt'
 						);
-						res.send(`api/file${req.url}/${url}`);
+						res.send(url);
 					}
 				);
 			}

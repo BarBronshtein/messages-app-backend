@@ -2,10 +2,24 @@ import logger from './logger.service';
 import { Http2SecureServer } from 'http2';
 import { Server, Socket, RemoteSocket } from 'socket.io';
 import { ObjectId } from 'mongodb';
+import { DefaultEventsMap } from 'socket.io/dist/typed-events';
+
+interface ISocket extends Socket {
+	userId?: string | ObjectId;
+}
+
+type MySocketAction = {
+	type: MySocketTypes;
+	data: any;
+	label: ISocket;
+	room: string | null;
+};
+
 enum MySocketTypes {
 	SET_USER_SOCKET = 'SET_USER_SOCKET',
 	DISCONNET_USER_SOCKET = 'DISCONNET_USER_SOCKET',
 }
+
 let gIo = new Server();
 function setupSocketAPI(http: Http2SecureServer) {
 	gIo.attach(http, {
@@ -13,9 +27,9 @@ function setupSocketAPI(http: Http2SecureServer) {
 			origin: '*',
 		},
 	});
-	gIo.on('connection', socket => {
+	gIo.on('connection', (socket: ISocket) => {
 		logger.info(`New connected socket [id: ${socket.id}]`);
-		socket.on(MySocketTypes.SET_USER_SOCKET, userId => {
+		socket.on(MySocketTypes.SET_USER_SOCKET, (userId: string | ObjectId) => {
 			logger.info(`Setting socket.userId=${userId}for socket [id:${socket.id}]`);
 			socket.userId = userId;
 		});
@@ -28,12 +42,7 @@ function setupSocketAPI(http: Http2SecureServer) {
 		});
 	});
 }
-type MySocketAction = {
-	type: MySocketTypes;
-	data: any;
-	label: Socket;
-	room: Socket | null;
-};
+
 function emitTo({ type, data, label }: MySocketAction) {
 	if (label) gIo.to('watching:' + label).emit(type, data);
 	else gIo.emit(type, data);
@@ -82,14 +91,14 @@ async function broadcast({
 	}
 }
 
-async function _getUserSocket(userId: ObjectId) {
+async function _getUserSocket(userId: ObjectId): Promise<Socket | undefined> {
 	const sockets = await _getAllSockets();
 	const socket = sockets.find(s => s.userId === userId);
 	return socket;
 }
-async function _getAllSockets() {
+async function _getAllSockets(): Promise<ISocket[]> {
 	// return all Socket instances
-	const sockets = await gIo.fetchSockets();
+	const sockets = (await gIo.fetchSockets()) as unknown as ISocket[];
 	return sockets;
 }
 
@@ -98,7 +107,7 @@ async function _printSockets() {
 	console.log(`Sockets: (count: ${sockets.length}):`);
 	sockets.forEach(_printSocket);
 }
-function _printSocket(socket: Socket) {
+function _printSocket(socket: ISocket) {
 	console.log(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
 }
 
