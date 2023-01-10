@@ -11,9 +11,7 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 
-if (process.env.NODE_ENV === 'production') {
-	// app.use(express.static(path.resolve(__dirname, 'public')));
-} else {
+if (process.env.NODE_ENV !== 'production') {
 	const corsOptions = {
 		origin: [
 			'http://127.0.0.1:5050',
@@ -31,10 +29,6 @@ import chatRoutes from './api/chat/chat.routes';
 app.use('/api/chat', chatRoutes);
 import fileRoutes from './api/file/file.routes';
 app.use('/api/file', fileRoutes);
-
-app.get('/**', (req: Request, res: Response) => {
-	res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 app.listen(process.env.PORT || 7050, () => {
 	console.log(`Server is running at http://localhost:${process.env.PORT}`);

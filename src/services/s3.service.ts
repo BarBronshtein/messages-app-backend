@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import loggerService from './logger.service';
 dotenv.config();
 
-let s3: any = null;
+let s3: null | AWS.S3 = null;
 
 export async function connect() {
 	if (s3) return s3;

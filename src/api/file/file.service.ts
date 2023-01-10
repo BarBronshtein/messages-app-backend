@@ -3,7 +3,7 @@ import logger from '../../services/logger.service';
 import { connect } from '../../services/s3.service';
 dotenv.config();
 
-const BUCKET = process.env.AWS_S3_BUCKET;
+const BUCKET = process.env.AWS_S3_BUCKET || '';
 
 export const fileService = {
 	getById,
@@ -32,18 +32,19 @@ async function getById(fileId: string) {
 }
 
 async function upload(file: Buffer, fileType: string) {
-	const key = `${_makeId()}/${fileType}`;
+	const key = `chat-assets/${_makeId()}-${fileType}`;
 	try {
-		// const s3 = await connect();
-		// await s3
-		// 	.putObject({
-		// 		Body: file,
-		// 		Bucket: BUCKET,
-		// 		Key: key,
-		// 	})
-		// 	.promise();
+		const s3 = await connect();
+
+		await s3
+			.upload({
+				Body: file,
+				Bucket: BUCKET,
+				Key: key,
+			})
+			.promise();
 		console.log('Successfully uploaded data to ' + BUCKET + '/' + key);
-		return key;
+		return `${process.env.AWS_ASSET_BUCKET}/${key}`;
 	} catch (err) {
 		logger.error('Failed to upload file to s3', err);
 		throw err;
