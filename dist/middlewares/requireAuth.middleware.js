@@ -18,8 +18,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 function requireAuth(req, res, next) {
     return __awaiter(this, void 0, void 0, function* () {
-        const authCookie = req.cookies;
-        console.log(authCookie);
+        const authCookie = req.cookies.loginToken;
         if (!authCookie)
             return res.status(401).send('Not Authenticated');
         try {
