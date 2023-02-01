@@ -71,6 +71,7 @@ async function update(chat: Chat, curUserId: ObjectId | string) {
 	const updatedChat = { _id: new ObjectId(chat._id), messages };
 	return updatedChat;
 }
+
 async function add(participants: { _id: string | ObjectId; photo: string }[]) {
 	try {
 		const chatId = await _findByParticipants(participants);
@@ -143,5 +144,5 @@ async function _findByParticipants(users: User[]) {
 			},
 		})
 		.toArray();
-	return chat[0]._id;
+	return chat[0]?._id;
 }

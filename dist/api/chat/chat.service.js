@@ -138,6 +138,7 @@ function addMessage(message, chatId) {
     });
 }
 function _findByParticipants(users) {
+    var _a;
     return __awaiter(this, void 0, void 0, function* () {
         // If the input is multiple users return the chatId
         const collection = yield (0, db_service_1.getCollection)('conversation');
@@ -151,6 +152,6 @@ function _findByParticipants(users) {
             },
         })
             .toArray();
-        return chat[0]._id;
+        return (_a = chat[0]) === null || _a === void 0 ? void 0 : _a._id;
     });
 }
