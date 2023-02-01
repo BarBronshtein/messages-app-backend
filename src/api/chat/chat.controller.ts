@@ -5,7 +5,7 @@ import logger from '../../services/logger.service';
 
 async function getChats(req: Request, res: Response) {
 	try {
-		const chats = await chatService.query(JSON.parse(req.query.params as string));
+		const chats = await chatService.query(res.locals.loggedinUser);
 		res.send(chats);
 	} catch (err) {
 		logger.error('Failed to get chats', err);

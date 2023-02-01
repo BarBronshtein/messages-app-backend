@@ -6,7 +6,6 @@ import path from 'path';
 
 dotenv.config();
 const app = express();
-
 // Express App Config
 app.use(cookieParser());
 app.use(express.json());
@@ -20,14 +19,16 @@ if (process.env.NODE_ENV !== 'production') {
 			'http://localhost:5050',
 			'http://localhost:5173',
 			'http://localhost:5174',
+			'https://chattyapp.lol',
 		],
 		credentials: true,
 	};
 	app.use(cors(corsOptions));
 }
 import chatRoutes from './api/chat/chat.routes';
-app.use('/api/chat', chatRoutes);
 import fileRoutes from './api/file/file.routes';
+
+app.use('/api/chat', chatRoutes);
 app.use('/api/file', fileRoutes);
 
 app.listen(process.env.PORT || 7050, () => {

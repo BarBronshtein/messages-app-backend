@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { ObjectId, WithId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { getCollection } from '../../services/db.service';
 import logger from '../../services/logger.service';
 
@@ -19,7 +19,7 @@ type Chat = {
 };
 type User = any;
 
-async function query(user: User | User[]) {
+async function query(user: User) {
 	try {
 		const collection = await getCollection('conversation');
 		const chats = await collection
@@ -92,21 +92,7 @@ async function add(participants: { _id: string | ObjectId; photo: string }[]) {
 	}
 }
 async function addMessage(message: any, chatId: ObjectId | string) {
-	// If contains a file store in a diffrent collection and have a pointer to that file
 	try {
-		if (message.file) {
-			// Replace with
-			// fileService.update(message.file)
-			const fileCollection = await getCollection('file');
-			const { insertedId } = await fileCollection.insertOne({
-				file: message.file,
-			});
-
-			message.type = message.file.type.split('/')[0];
-			message.url = `${process.env.APP_DOMAIN}/api/files/${insertedId}`;
-			delete message.file;
-		}
-
 		const chatCollection = await getCollection('chat');
 		const chat = await chatCollection.findOne({ _id: new ObjectId(chatId) });
 		if (!chat) throw new Error('failed to get chat');
@@ -124,17 +110,18 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 			chatId: new ObjectId(chatId),
 		});
 		if (!conversation) throw new Error('failed to get conversation');
+
 		const conversationToSave = {
 			participants: conversation.participants,
 			lastMsg: message.txt || message.type.split('/')[0],
 			chatId: conversation.chatId,
 			timestamp: message.timestamp,
 		};
+
 		await conversationCollection.updateOne(
 			{ chatId: new ObjectId(chatId) },
 			{ $set: conversationToSave }
 		);
-		// Todo:update conversation data in Client
 
 		return chat;
 	} catch (err) {
