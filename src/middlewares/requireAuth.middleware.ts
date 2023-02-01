@@ -6,8 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
-	const authCookie = req.cookies;
-	console.log(authCookie);
+	const authCookie = req.cookies.loginToken;
 	if (!authCookie) return res.status(401).send('Not Authenticated');
 	try {
 		const response = await axios.get(
