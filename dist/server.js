@@ -12,21 +12,19 @@ const app = (0, express_1.default)();
 // Express App Config
 app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.json());
-if (process.env.NODE_ENV !== 'production') {
-    const corsOptions = {
-        origin: [
-            'http://127.0.0.1:5050',
-            'http://127.0.0.1:5173',
-            'http://127.0.0.1:5174',
-            'http://localhost:5050',
-            'http://localhost:5173',
-            'http://localhost:5174',
-            'https://chattyapp.lol',
-        ],
-        credentials: true,
-    };
-    app.use((0, cors_1.default)(corsOptions));
-}
+const corsOptions = {
+    origin: [
+        'http://127.0.0.1:5050',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174',
+        'http://localhost:5050',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'https://chattyapp.lol',
+    ],
+    credentials: true,
+};
+app.use((0, cors_1.default)(corsOptions));
 const chat_routes_1 = __importDefault(require("./api/chat/chat.routes"));
 const file_routes_1 = __importDefault(require("./api/file/file.routes"));
 app.use('/api/chat', chat_routes_1.default);
