@@ -22,7 +22,7 @@ function requireAuth(req, res, next) {
         if (!authCookie)
             return res.status(401).send('Not Authenticated');
         try {
-            const response = yield axios_1.default.get(`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate`);
+            const response = yield axios_1.default.get(`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate`, { headers: { Cookie: `loginToken=${authCookie}` } });
             if (response.status !== 200 || !response.data) {
                 return res.status(401).send('Token is invalid');
             }

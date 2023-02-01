@@ -10,7 +10,8 @@ async function requireAuth(req: Request, res: Response, next: NextFunction) {
 	if (!authCookie) return res.status(401).send('Not Authenticated');
 	try {
 		const response = await axios.get(
-			`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate`
+			`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate`,
+			{ headers: { Cookie: `loginToken=${authCookie}` } }
 		);
 		if (response.status !== 200 || !response.data) {
 			return res.status(401).send('Token is invalid');
