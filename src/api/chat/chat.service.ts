@@ -101,22 +101,18 @@ async function add(
 }
 async function addMessage(message: any, chatId: ObjectId | string) {
 	try {
-		logger.info('pre-fetch');
 		const chatCollection = await getCollection('chat');
 		const chat = await chatCollection.findOne({ _id: new ObjectId(chatId) });
 		if (!chat) throw new Error('failed to get chat');
-		logger.info('after-fetch');
 
 		message.timestamp = Date.now();
 		chat.messages.push(message);
 		const chatToSave = { messages: chat.messages, userId: chat.userId };
 
-		logger.info('pre-update');
 		await chatCollection.updateOne(
 			{ _id: new ObjectId(chatId) },
 			{ $set: chatToSave }
 		);
-		logger.info('after-update, pre second fetch');
 
 		// Update conversation aswell
 		const conversationCollection = await getCollection('conversation');
@@ -124,7 +120,6 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 			chatId: new ObjectId(chatId),
 		});
 		if (!conversation) throw new Error('failed to get conversation');
-		logger.info('after second fetch');
 
 		const conversationToSave = {
 			participants: conversation.participants,
@@ -132,12 +127,10 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 			chatId: conversation.chatId,
 			timestamp: Date.now(),
 		};
-		logger.info('pre second update');
 		await conversationCollection.updateOne(
 			{ _id: new ObjectId(conversation._id) },
 			{ $set: conversationToSave }
 		);
-		logger.info('after second update');
 		return message;
 	} catch (err) {
 		logger.error('While adding message', err);
