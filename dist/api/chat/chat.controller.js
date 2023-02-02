@@ -58,9 +58,9 @@ function addMessage(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const message = req.body;
-            const updatedChat = yield chat_service_1.chatService.addMessage(message, req.params.id);
-            // Consider only sending the added message instead of all the chat
-            res.send(updatedChat);
+            logger_service_1.default.info(message);
+            const addedMessage = yield chat_service_1.chatService.addMessage(message, req.params.id);
+            res.send(addedMessage);
         }
         catch (err) {
             logger_service_1.default.error('Failed to add message', err);
@@ -73,7 +73,7 @@ function addChat(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const participants = req.body;
-            const addedChat = yield chat_service_1.chatService.add(participants);
+            const addedChat = yield chat_service_1.chatService.add(participants, res.locals.loggedinUser);
             res.json(addedChat);
         }
         catch (err) {

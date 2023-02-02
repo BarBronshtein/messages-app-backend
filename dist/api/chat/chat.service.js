@@ -37,6 +37,7 @@ function query(user) {
             })
                 .sort({ timestamp: -1 })
                 .toArray();
+            console.log(chats);
             return chats.map(chat => ({
                 user: chat.participants.filter((participant) => participant._id !== user._id),
                 lastMsg: { txt: chat.lastMsg, timestamp: chat.timestamp },
@@ -80,7 +81,7 @@ function update(chat, curUserId) {
         return updatedChat;
     });
 }
-function add(participants) {
+function add(participants, loggedinUser) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const chatId = yield _findByParticipants(participants);
@@ -88,7 +89,10 @@ function add(participants) {
                 return chatId;
             const conversationCollection = yield (0, db_service_1.getCollection)('conversation');
             const chatCollection = yield (0, db_service_1.getCollection)('chat');
-            const { insertedId } = yield chatCollection.insertOne({ messages: [] });
+            const { insertedId } = yield chatCollection.insertOne({
+                messages: [],
+                userId: participants.filter(user => user._id !== loggedinUser._id)[0]._id,
+            });
             conversationCollection.insertOne({
                 chatId: insertedId,
                 participants,
@@ -112,6 +116,7 @@ function addMessage(message, chatId) {
             if (!chat)
                 throw new Error('failed to get chat');
             message.timestamp = Date.now();
+            logger_service_1.default.info(chat);
             chat.messages.push(message);
             const messages = chat.messages;
             yield chatCollection.updateOne({ _id: new mongodb_1.ObjectId(chatId) }, { $set: messages });
@@ -128,8 +133,10 @@ function addMessage(message, chatId) {
                 chatId: conversation.chatId,
                 timestamp: message.timestamp,
             };
-            yield conversationCollection.updateOne({ chatId: new mongodb_1.ObjectId(chatId) }, { $set: conversationToSave });
-            return chat;
+            logger_service_1.default.info(conversation);
+            yield conversationCollection.updateOne({ _id: new mongodb_1.ObjectId(conversation._id) }, { $set: conversationToSave });
+            logger_service_1.default.info(chat);
+            return message;
         }
         catch (err) {
             logger_service_1.default.error('While adding message');
