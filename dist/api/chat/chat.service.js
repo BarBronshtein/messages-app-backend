@@ -116,7 +116,6 @@ function addMessage(message, chatId) {
             if (!chat)
                 throw new Error('failed to get chat');
             message.timestamp = Date.now();
-            logger_service_1.default.info(chat);
             chat.messages.push(message);
             const messages = chat.messages;
             yield chatCollection.updateOne({ _id: new mongodb_1.ObjectId(chatId) }, { $set: messages });
@@ -129,17 +128,15 @@ function addMessage(message, chatId) {
                 throw new Error('failed to get conversation');
             const conversationToSave = {
                 participants: conversation.participants,
-                lastMsg: message.txt || message.type.split('/')[0],
+                lastMsg: message.txt || message.type,
                 chatId: conversation.chatId,
                 timestamp: message.timestamp,
             };
-            logger_service_1.default.info(conversation);
             yield conversationCollection.updateOne({ _id: new mongodb_1.ObjectId(conversation._id) }, { $set: conversationToSave });
-            logger_service_1.default.info(chat);
             return message;
         }
         catch (err) {
-            logger_service_1.default.error('While adding message');
+            logger_service_1.default.error('While adding message', err);
             throw err;
         }
     });

@@ -106,7 +106,6 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 		const chat = await chatCollection.findOne({ _id: new ObjectId(chatId) });
 		if (!chat) throw new Error('failed to get chat');
 		message.timestamp = Date.now();
-		logger.info(chat);
 		chat.messages.push(message);
 		const messages = chat.messages;
 		await chatCollection.updateOne(
@@ -123,19 +122,17 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 
 		const conversationToSave = {
 			participants: conversation.participants,
-			lastMsg: message.txt || message.type.split('/')[0],
+			lastMsg: message.txt || message.type,
 			chatId: conversation.chatId,
 			timestamp: message.timestamp,
 		};
-		logger.info(conversation);
 		await conversationCollection.updateOne(
 			{ _id: new ObjectId(conversation._id) },
 			{ $set: conversationToSave }
 		);
-		logger.info(chat);
 		return message;
 	} catch (err) {
-		logger.error('While adding message');
+		logger.error('While adding message', err);
 		throw err;
 	}
 }
