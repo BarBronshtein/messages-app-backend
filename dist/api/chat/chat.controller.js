@@ -58,7 +58,6 @@ function addMessage(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const message = req.body;
-            logger_service_1.default.info(message);
             const addedMessage = yield chat_service_1.chatService.addMessage(message, req.params.id);
             res.send(addedMessage);
         }

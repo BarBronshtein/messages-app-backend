@@ -37,7 +37,6 @@ function query(user) {
             })
                 .sort({ timestamp: -1 })
                 .toArray();
-            console.log(chats);
             return chats.map(chat => ({
                 user: chat.participants.filter((participant) => participant._id !== user._id),
                 lastMsg: { txt: chat.lastMsg, timestamp: chat.timestamp },
@@ -111,14 +110,18 @@ function add(participants, loggedinUser) {
 function addMessage(message, chatId) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
+            logger_service_1.default.info('pre-fetch');
             const chatCollection = yield (0, db_service_1.getCollection)('chat');
             const chat = yield chatCollection.findOne({ _id: new mongodb_1.ObjectId(chatId) });
             if (!chat)
                 throw new Error('failed to get chat');
+            logger_service_1.default.info('after-fetch');
             message.timestamp = Date.now();
             chat.messages.push(message);
-            const messages = chat.messages;
-            yield chatCollection.updateOne({ _id: new mongodb_1.ObjectId(chatId) }, { $set: messages });
+            const chatToSave = { messages: chat.messages, userId: chat.userId };
+            logger_service_1.default.info('pre-update');
+            yield chatCollection.updateOne({ _id: new mongodb_1.ObjectId(chatId) }, { $set: chatToSave });
+            logger_service_1.default.info('after-update, pre second fetch');
             // Update conversation aswell
             const conversationCollection = yield (0, db_service_1.getCollection)('conversation');
             const conversation = yield conversationCollection.findOne({
@@ -126,13 +129,16 @@ function addMessage(message, chatId) {
             });
             if (!conversation)
                 throw new Error('failed to get conversation');
+            logger_service_1.default.info('after second fetch');
             const conversationToSave = {
                 participants: conversation.participants,
                 lastMsg: message.txt || message.type,
                 chatId: conversation.chatId,
-                timestamp: message.timestamp,
+                timestamp: Date.now(),
             };
+            logger_service_1.default.info('pre second update');
             yield conversationCollection.updateOne({ _id: new mongodb_1.ObjectId(conversation._id) }, { $set: conversationToSave });
+            logger_service_1.default.info('after second update');
             return message;
         }
         catch (err) {

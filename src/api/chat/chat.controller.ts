@@ -36,7 +36,6 @@ async function updateChat(req: Request, res: Response) {
 async function addMessage(req: Request, res: Response) {
 	try {
 		const message = req.body;
-		logger.info(message);
 		const addedMessage = await chatService.addMessage(message, req.params.id);
 		res.send(addedMessage);
 	} catch (err) {
