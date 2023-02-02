@@ -36,9 +36,9 @@ async function updateChat(req: Request, res: Response) {
 async function addMessage(req: Request, res: Response) {
 	try {
 		const message = req.body;
-		const updatedChat = await chatService.addMessage(message, req.params.id);
-		// Consider only sending the added message instead of all the chat
-		res.send(updatedChat);
+		console.log(message);
+		const addedMessage = await chatService.addMessage(message, req.params.id);
+		res.send(addedMessage);
 	} catch (err) {
 		logger.error('Failed to add message', err);
 		res.status(500).send({ err: 'Failed to add message' });
@@ -48,7 +48,10 @@ async function addMessage(req: Request, res: Response) {
 async function addChat(req: Request, res: Response) {
 	try {
 		const participants = req.body;
-		const addedChat = await chatService.add(participants);
+		const addedChat = await chatService.add(
+			participants,
+			res.locals.loggedinUser
+		);
 		res.json(addedChat);
 	} catch (err) {
 		logger.error('Failed to add chat', err);
