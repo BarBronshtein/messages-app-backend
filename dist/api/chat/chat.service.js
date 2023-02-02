@@ -144,7 +144,6 @@ function addMessage(message, chatId) {
 function _findByParticipants(users) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        // If the input is multiple users return the chatId
         const collection = yield (0, db_service_1.getCollection)('conversation');
         const chat = yield collection
             .find({

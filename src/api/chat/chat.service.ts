@@ -138,7 +138,6 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 }
 
 async function _findByParticipants(users: User[]) {
-	// If the input is multiple users return the chatId
 	const collection = await getCollection('conversation');
 	const chat = await collection
 		.find({
