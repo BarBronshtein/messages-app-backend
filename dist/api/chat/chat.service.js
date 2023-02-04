@@ -118,7 +118,18 @@ function addMessage(message, chatId) {
             chat.messages.push(message);
             const chatToSave = { messages: chat.messages, userId: chat.userId };
             yield chatCollection.updateOne({ _id: new mongodb_1.ObjectId(chatId) }, { $set: chatToSave });
-            // Update conversation aswell
+            _updateConversationWhenAddingMessage(message, chatId);
+            return message;
+        }
+        catch (err) {
+            logger_service_1.default.error('While adding message', err);
+            throw err;
+        }
+    });
+}
+function _updateConversationWhenAddingMessage(message, chatId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
             const conversationCollection = yield (0, db_service_1.getCollection)('conversation');
             const conversation = yield conversationCollection.findOne({
                 chatId: new mongodb_1.ObjectId(chatId),
@@ -132,10 +143,9 @@ function addMessage(message, chatId) {
                 timestamp: Date.now(),
             };
             yield conversationCollection.updateOne({ _id: new mongodb_1.ObjectId(conversation._id) }, { $set: conversationToSave });
-            return message;
         }
         catch (err) {
-            logger_service_1.default.error('While adding message', err);
+            logger_service_1.default.error('Failed to update conversation');
             throw err;
         }
     });
@@ -154,6 +164,6 @@ function _findByParticipants(users) {
             },
         })
             .toArray();
-        return (_a = chat[0]) === null || _a === void 0 ? void 0 : _a._id;
+        return (_a = chat[0]) === null || _a === void 0 ? void 0 : _a.chatId;
     });
 }

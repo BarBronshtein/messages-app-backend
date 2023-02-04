@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import requreAuth from '../../middlewares/requireAuth.middleware';
 import * as chatController from './chat.controller';
+import log from '../../middlewares/logger.middleware';
 const router = Router();
 
 // Middleware that is specific to this router
-router.use(requreAuth);
+router.use(log, requreAuth);
 
 router.get('/', chatController.getChats);
 router.get('/:id', chatController.getChatById);

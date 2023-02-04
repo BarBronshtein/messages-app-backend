@@ -113,8 +113,19 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 			{ _id: new ObjectId(chatId) },
 			{ $set: chatToSave }
 		);
+		_updateConversationWhenAddingMessage(message, chatId);
+		return message;
+	} catch (err) {
+		logger.error('While adding message', err);
+		throw err;
+	}
+}
 
-		// Update conversation aswell
+async function _updateConversationWhenAddingMessage(
+	message: any,
+	chatId: string | ObjectId
+) {
+	try {
 		const conversationCollection = await getCollection('conversation');
 		const conversation = await conversationCollection.findOne({
 			chatId: new ObjectId(chatId),
@@ -131,9 +142,8 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 			{ _id: new ObjectId(conversation._id) },
 			{ $set: conversationToSave }
 		);
-		return message;
 	} catch (err) {
-		logger.error('While adding message', err);
+		logger.error('Failed to update conversation');
 		throw err;
 	}
 }
@@ -150,5 +160,5 @@ async function _findByParticipants(users: User[]) {
 			},
 		})
 		.toArray();
-	return chat[0]?._id;
+	return chat[0]?.chatId;
 }

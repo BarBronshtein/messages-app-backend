@@ -29,9 +29,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const requireAuth_middleware_1 = __importDefault(require("../../middlewares/requireAuth.middleware"));
 const chatController = __importStar(require("./chat.controller"));
+const logger_middleware_1 = __importDefault(require("../../middlewares/logger.middleware"));
 const router = (0, express_1.Router)();
 // Middleware that is specific to this router
-router.use(requireAuth_middleware_1.default);
+router.use(logger_middleware_1.default, requireAuth_middleware_1.default);
 router.get('/', chatController.getChats);
 router.get('/:id', chatController.getChatById);
 router.put('/message/:id', chatController.addMessage);
