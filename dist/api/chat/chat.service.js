@@ -57,7 +57,7 @@ function getById(chatId, curUserId) {
             const chat = yield collection.findOne({ _id: new mongodb_1.ObjectId(chatId) });
             const chatToSend = Object.assign(Object.assign({}, chat), { userId: chat === null || chat === void 0 ? void 0 : chat.participants.filter((userId) => curUserId !== userId)[0] });
             delete chatToSend.participants;
-            return chat;
+            return chatToSend;
         }
         catch (err) {
             logger_service_1.default.error(`while finding chat ${chatId}`, err);

@@ -54,7 +54,7 @@ async function getById(chatId: ObjectId | string, curUserId: string) {
 			)[0],
 		};
 		delete chatToSend.participants;
-		return chat;
+		return chatToSend;
 	} catch (err) {
 		logger.error(`while finding chat ${chatId}`, err);
 		throw err;
