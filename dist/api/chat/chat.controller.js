@@ -30,8 +30,9 @@ function getChats(req, res) {
 exports.getChats = getChats;
 function getChatById(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
+        const { _id } = res.locals.loggedinUser;
         try {
-            const chat = yield chat_service_1.chatService.getById(req.params.id);
+            const chat = yield chat_service_1.chatService.getById(req.params.id, _id);
             res.send(chat);
         }
         catch (err) {
@@ -72,7 +73,7 @@ function addChat(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const participants = req.body;
-            const addedChat = yield chat_service_1.chatService.add(participants, res.locals.loggedinUser);
+            const addedChat = yield chat_service_1.chatService.add(participants);
             res.json(addedChat);
         }
         catch (err) {

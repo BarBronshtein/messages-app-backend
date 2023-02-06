@@ -50,11 +50,13 @@ function query(user) {
         }
     });
 }
-function getById(chatId) {
+function getById(chatId, curUserId) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const collection = yield (0, db_service_1.getCollection)('chat');
             const chat = yield collection.findOne({ _id: new mongodb_1.ObjectId(chatId) });
+            const chatToSend = Object.assign(Object.assign({}, chat), { userId: chat === null || chat === void 0 ? void 0 : chat.participants.filter((userId) => curUserId !== userId)[0] });
+            delete chatToSend.participants;
             return chat;
         }
         catch (err) {
@@ -80,7 +82,7 @@ function update(chat, curUserId) {
         return updatedChat;
     });
 }
-function add(participants, loggedinUser) {
+function add(participants) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const chatId = yield _findByParticipants(participants);
@@ -90,7 +92,7 @@ function add(participants, loggedinUser) {
             const chatCollection = yield (0, db_service_1.getCollection)('chat');
             const { insertedId } = yield chatCollection.insertOne({
                 messages: [],
-                userId: participants.filter(user => user._id !== loggedinUser._id)[0]._id,
+                participants: participants.map(user => user._id),
             });
             conversationCollection.insertOne({
                 chatId: insertedId,

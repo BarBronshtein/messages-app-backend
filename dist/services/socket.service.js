@@ -18,6 +18,7 @@ var MySocketTypes;
 (function (MySocketTypes) {
     MySocketTypes["SET_USER_SOCKET"] = "SET_USER_SOCKET";
     MySocketTypes["DISCONNET_USER_SOCKET"] = "DISCONNET_USER_SOCKET";
+    MySocketTypes["SET_TOPIC"] = "SET_TOPIC";
 })(MySocketTypes || (MySocketTypes = {}));
 let gIo = new socket_io_1.Server();
 function setupSocketAPI(http) {
@@ -32,6 +33,7 @@ function setupSocketAPI(http) {
             logger_service_1.default.info(`Setting socket.userId=${userId}for socket [id:${socket.id}]`);
             socket.userId = userId;
         });
+        socket.on(MySocketTypes.SET_TOPIC, () => { });
         socket.on(MySocketTypes.DISCONNET_USER_SOCKET, () => {
             logger_service_1.default.info(`Removing socket.userId for socket [id: ${socket.id}]`);
             delete socket.userId;
