@@ -14,8 +14,9 @@ async function getChats(req: Request, res: Response) {
 }
 
 async function getChatById(req: Request, res: Response) {
+	const { _id } = res.locals.loggedinUser;
 	try {
-		const chat = await chatService.getById(req.params.id);
+		const chat = await chatService.getById(req.params.id, _id);
 		res.send(chat);
 	} catch (err) {
 		logger.error('Failed to get chat', err);
@@ -47,10 +48,7 @@ async function addMessage(req: Request, res: Response) {
 async function addChat(req: Request, res: Response) {
 	try {
 		const participants = req.body;
-		const addedChat = await chatService.add(
-			participants,
-			res.locals.loggedinUser
-		);
+		const addedChat = await chatService.add(participants);
 		res.json(addedChat);
 	} catch (err) {
 		logger.error('Failed to add chat', err);

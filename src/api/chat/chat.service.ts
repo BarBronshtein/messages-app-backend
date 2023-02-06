@@ -43,10 +43,17 @@ async function query(user: User) {
 		throw err;
 	}
 }
-async function getById(chatId: ObjectId | string) {
+async function getById(chatId: ObjectId | string, curUserId: string) {
 	try {
 		const collection = await getCollection('chat');
 		const chat = await collection.findOne({ _id: new ObjectId(chatId) });
+		const chatToSend: any = {
+			...chat,
+			userId: chat?.participants.filter(
+				(userId: string) => curUserId !== userId
+			)[0],
+		};
+		delete chatToSend.participants;
 		return chat;
 	} catch (err) {
 		logger.error(`while finding chat ${chatId}`, err);
@@ -72,10 +79,7 @@ async function update(chat: Chat, curUserId: ObjectId | string) {
 	return updatedChat;
 }
 
-async function add(
-	participants: { _id: string | ObjectId; photo: string }[],
-	loggedinUser: User
-) {
+async function add(participants: { _id: string | ObjectId; photo: string }[]) {
 	try {
 		const chatId = await _findByParticipants(participants);
 		if (chatId) return chatId;
@@ -83,7 +87,7 @@ async function add(
 		const chatCollection = await getCollection('chat');
 		const { insertedId } = await chatCollection.insertOne({
 			messages: [],
-			userId: participants.filter(user => user._id !== loggedinUser._id)[0]._id,
+			participants: participants.map(user => user._id),
 		});
 
 		conversationCollection.insertOne({

@@ -18,6 +18,7 @@ type MySocketAction = {
 enum MySocketTypes {
 	SET_USER_SOCKET = 'SET_USER_SOCKET',
 	DISCONNET_USER_SOCKET = 'DISCONNET_USER_SOCKET',
+	SET_TOPIC = 'SET_TOPIC',
 }
 
 let gIo = new Server();
@@ -33,6 +34,7 @@ function setupSocketAPI(http: Http2SecureServer) {
 			logger.info(`Setting socket.userId=${userId}for socket [id:${socket.id}]`);
 			socket.userId = userId;
 		});
+		socket.on(MySocketTypes.SET_TOPIC, () => {});
 		socket.on(MySocketTypes.DISCONNET_USER_SOCKET, () => {
 			logger.info(`Removing socket.userId for socket [id: ${socket.id}]`);
 			delete socket.userId;
