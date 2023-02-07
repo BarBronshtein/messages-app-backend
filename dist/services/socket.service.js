@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.socketService = void 0;
 const logger_service_1 = __importDefault(require("./logger.service"));
 const socket_io_1 = require("socket.io");
 var MySocketTypes;
@@ -19,6 +20,10 @@ var MySocketTypes;
     MySocketTypes["SET_USER_SOCKET"] = "SET_USER_SOCKET";
     MySocketTypes["DISCONNET_USER_SOCKET"] = "DISCONNET_USER_SOCKET";
     MySocketTypes["SET_TOPIC"] = "SET_TOPIC";
+    MySocketTypes["CLIENT_EMIT_ADD_MESSAGE"] = "CLIENT_EMIT_ADD_MESSAGE";
+    MySocketTypes["CLIENT_EMIT_CONVERSATION_UPDATE"] = "CLIENT_EMIT_CONVERSATION_UPDATE";
+    MySocketTypes["SERVER_EMIT_ADD_MESSAGE"] = "SERVER_EMIT_ADD_MESSAGE";
+    MySocketTypes["SERVER_EMIT_CONVERSATION_UPDATE"] = "SERVER_EMIT_CONVERSATION_UPDATE";
 })(MySocketTypes || (MySocketTypes = {}));
 let gIo = new socket_io_1.Server();
 function setupSocketAPI(http) {
@@ -33,10 +38,41 @@ function setupSocketAPI(http) {
             logger_service_1.default.info(`Setting socket.userId=${userId}for socket [id:${socket.id}]`);
             socket.userId = userId;
         });
-        socket.on(MySocketTypes.SET_TOPIC, () => { });
         socket.on(MySocketTypes.DISCONNET_USER_SOCKET, () => {
             logger_service_1.default.info(`Removing socket.userId for socket [id: ${socket.id}]`);
             delete socket.userId;
+        });
+        socket.on(MySocketTypes.SET_TOPIC, (topic) => {
+            // topic is the chatId
+            if (socket.myTopic === topic)
+                return;
+            if (socket.myTopic) {
+                socket.leave(socket.myTopic);
+                logger_service_1.default.info(`Socket is leaving topic ${socket.myTopic} [id: ${socket.id}]`);
+            }
+            socket.join(topic);
+            socket.myTopic = topic;
+            logger_service_1.default.info(`Socket is joining topic ${socket.myTopic} [id: ${socket.id}]`);
+        });
+        socket.on(MySocketTypes.CLIENT_EMIT_ADD_MESSAGE, msg => {
+            broadcast({
+                type: MySocketTypes.SERVER_EMIT_ADD_MESSAGE,
+                data: msg,
+                room: socket.myTopic,
+                userId: socket.userId,
+            });
+        });
+        socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
+            emitToUser({
+                type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
+                data: conversation,
+                userId: socket.userId,
+            });
+            emitToUser({
+                type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
+                data: conversation,
+                userId: conversation.user[0]._id,
+            });
         });
         socket.on('disconnect', () => {
             logger_service_1.default.info(`Socket disconnected [id: ${socket.id}]`);
@@ -45,7 +81,7 @@ function setupSocketAPI(http) {
 }
 function emitTo({ type, data, label }) {
     if (label)
-        gIo.to('watching:' + label).emit(type, data);
+        gIo.to(label).emit(type, data);
     else
         gIo.emit(type, data);
 }
@@ -110,7 +146,7 @@ function _printSockets() {
 function _printSocket(socket) {
     console.log(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
 }
-module.exports = {
+exports.socketService = {
     // set up the sockets service and define the API
     setupSocketAPI,
     // emit to everyone / everyone in a specific room (label)
