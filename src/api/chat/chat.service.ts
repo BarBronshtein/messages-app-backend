@@ -36,6 +36,7 @@ async function query(user: User) {
 			),
 			lastMsg: { txt: chat.lastMsg, timestamp: chat.timestamp },
 			chatId: chat.chatId,
+			_id: chat._id,
 		}));
 	} catch (err) {
 		console.log(err);
@@ -109,7 +110,6 @@ async function addMessage(message: any, chatId: ObjectId | string) {
 		const chat = await chatCollection.findOne({ _id: new ObjectId(chatId) });
 		if (!chat) throw new Error('failed to get chat');
 
-		message.timestamp = Date.now();
 		chat.messages.push(message);
 		const chatToSave = { messages: chat.messages, userId: chat.userId };
 
@@ -140,7 +140,7 @@ async function _updateConversationWhenAddingMessage(
 			participants: conversation.participants,
 			lastMsg: message.txt || message.type,
 			chatId: conversation.chatId,
-			timestamp: Date.now(),
+			timestamp: message.timestamp,
 		};
 		await conversationCollection.updateOne(
 			{ _id: new ObjectId(conversation._id) },

@@ -41,6 +41,7 @@ function query(user) {
                 user: chat.participants.filter((participant) => participant._id !== user._id),
                 lastMsg: { txt: chat.lastMsg, timestamp: chat.timestamp },
                 chatId: chat.chatId,
+                _id: chat._id,
             }));
         }
         catch (err) {
@@ -116,7 +117,6 @@ function addMessage(message, chatId) {
             const chat = yield chatCollection.findOne({ _id: new mongodb_1.ObjectId(chatId) });
             if (!chat)
                 throw new Error('failed to get chat');
-            message.timestamp = Date.now();
             chat.messages.push(message);
             const chatToSave = { messages: chat.messages, userId: chat.userId };
             yield chatCollection.updateOne({ _id: new mongodb_1.ObjectId(chatId) }, { $set: chatToSave });
@@ -142,7 +142,7 @@ function _updateConversationWhenAddingMessage(message, chatId) {
                 participants: conversation.participants,
                 lastMsg: message.txt || message.type,
                 chatId: conversation.chatId,
-                timestamp: Date.now(),
+                timestamp: message.timestamp,
             };
             yield conversationCollection.updateOne({ _id: new mongodb_1.ObjectId(conversation._id) }, { $set: conversationToSave });
         }

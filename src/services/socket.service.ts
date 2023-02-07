@@ -1,8 +1,7 @@
 import logger from './logger.service';
 import { Http2SecureServer } from 'http2';
-import { Server, Socket, RemoteSocket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { ObjectId } from 'mongodb';
-import { DefaultEventsMap } from 'socket.io/dist/typed-events';
 
 interface ISocket extends Socket {
 	userId?: string | ObjectId;
@@ -11,7 +10,7 @@ interface ISocket extends Socket {
 type MySocketAction = {
 	type: MySocketTypes;
 	data: any;
-	label: ISocket;
+	label: string;
 	room: string | null;
 };
 
