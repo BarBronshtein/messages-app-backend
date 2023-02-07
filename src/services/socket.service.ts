@@ -1,27 +1,35 @@
+import http from 'http';
 import logger from './logger.service';
-import { Http2SecureServer } from 'http2';
 import { Server, Socket } from 'socket.io';
 import { ObjectId } from 'mongodb';
+import { IncomingMessage, ServerResponse } from 'http';
 
 interface ISocket extends Socket {
 	userId?: string | ObjectId;
+	myTopic?: string;
 }
 
 type MySocketAction = {
 	type: MySocketTypes;
 	data: any;
-	label: string;
-	room: string | null;
+	label?: string;
+	room?: string | null;
 };
 
 enum MySocketTypes {
 	SET_USER_SOCKET = 'SET_USER_SOCKET',
 	DISCONNET_USER_SOCKET = 'DISCONNET_USER_SOCKET',
 	SET_TOPIC = 'SET_TOPIC',
+	CLIENT_EMIT_ADD_MESSAGE = 'CLIENT_EMIT_ADD_MESSAGE',
+	CLIENT_EMIT_CONVERSATION_UPDATE = 'CLIENT_EMIT_CONVERSATION_UPDATE',
+	SERVER_EMIT_ADD_MESSAGE = 'SERVER_EMIT_ADD_MESSAGE',
+	SERVER_EMIT_CONVERSATION_UPDATE = 'SERVER_EMIT_CONVERSATION_UPDATE',
 }
 
 let gIo = new Server();
-function setupSocketAPI(http: Http2SecureServer) {
+function setupSocketAPI(
+	http: http.Server<typeof IncomingMessage, typeof ServerResponse>
+) {
 	gIo.attach(http, {
 		cors: {
 			origin: '*',
@@ -33,10 +41,40 @@ function setupSocketAPI(http: Http2SecureServer) {
 			logger.info(`Setting socket.userId=${userId}for socket [id:${socket.id}]`);
 			socket.userId = userId;
 		});
-		socket.on(MySocketTypes.SET_TOPIC, () => {});
 		socket.on(MySocketTypes.DISCONNET_USER_SOCKET, () => {
 			logger.info(`Removing socket.userId for socket [id: ${socket.id}]`);
 			delete socket.userId;
+		});
+		socket.on(MySocketTypes.SET_TOPIC, (topic: string) => {
+			// topic is the chatId
+			if (socket.myTopic === topic) return;
+			if (socket.myTopic) {
+				socket.leave(socket.myTopic);
+				logger.info(`Socket is leaving topic ${socket.myTopic} [id: ${socket.id}]`);
+			}
+			socket.join(topic);
+			socket.myTopic = topic;
+			logger.info(`Socket is joining topic ${socket.myTopic} [id: ${socket.id}]`);
+		});
+		socket.on(MySocketTypes.CLIENT_EMIT_ADD_MESSAGE, msg => {
+			broadcast({
+				type: MySocketTypes.SERVER_EMIT_ADD_MESSAGE,
+				data: msg,
+				room: socket.myTopic,
+				userId: socket.userId!,
+			});
+		});
+		socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
+			emitToUser({
+				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
+				data: conversation,
+				userId: socket.userId!,
+			});
+			emitToUser({
+				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
+				data: conversation,
+				userId: conversation.user[0]._id,
+			});
 		});
 		socket.on('disconnect', () => {
 			logger.info(`Socket disconnected [id: ${socket.id}]`);
@@ -45,7 +83,7 @@ function setupSocketAPI(http: Http2SecureServer) {
 }
 
 function emitTo({ type, data, label }: MySocketAction) {
-	if (label) gIo.to('watching:' + label).emit(type, data);
+	if (label) gIo.to(label).emit(type, data);
 	else gIo.emit(type, data);
 }
 
@@ -53,7 +91,7 @@ async function emitToUser({
 	type,
 	data,
 	userId,
-}: MySocketAction & { userId: ObjectId }) {
+}: MySocketAction & { userId: ObjectId | string }) {
 	const socket = await _getUserSocket(userId);
 
 	if (socket) {
@@ -74,7 +112,7 @@ async function broadcast({
 	data,
 	room = null,
 	userId,
-}: MySocketAction & { userId: ObjectId }) {
+}: MySocketAction & { userId: ObjectId | string }) {
 	logger.info(`Broadcasting event: ${type}`);
 	const excludedSocket = await _getUserSocket(userId);
 	if (room && excludedSocket) {
@@ -92,7 +130,9 @@ async function broadcast({
 	}
 }
 
-async function _getUserSocket(userId: ObjectId): Promise<Socket | undefined> {
+async function _getUserSocket(
+	userId: ObjectId | string
+): Promise<Socket | undefined> {
 	const sockets = await _getAllSockets();
 	const socket = sockets.find(s => s.userId === userId);
 	return socket;
@@ -112,7 +152,7 @@ function _printSocket(socket: ISocket) {
 	console.log(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
 }
 
-module.exports = {
+export const socketService = {
 	// set up the sockets service and define the API
 	setupSocketAPI,
 	// emit to everyone / everyone in a specific room (label)

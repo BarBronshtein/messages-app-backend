@@ -1,15 +1,17 @@
 import cookieParser from 'cookie-parser';
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
+import http from 'http';
 
 dotenv.config();
 const app = express();
+const httpServer = http.createServer(app);
+
 // Express App Config
 app.use(cookieParser());
 app.use(express.json());
-
+socketService.setupSocketAPI(httpServer);
 const corsOptions = {
 	origin: [
 		'http://127.0.0.1:5050',
@@ -26,10 +28,11 @@ app.use(cors(corsOptions));
 
 import chatRoutes from './api/chat/chat.routes';
 import fileRoutes from './api/file/file.routes';
+import { socketService } from './services/socket.service';
 
 app.use('/api/chat', chatRoutes);
 app.use('/api/file', fileRoutes);
 
-app.listen(process.env.PORT || 7050, () => {
+httpServer.listen(process.env.PORT || 7050, () => {
 	console.log(`Server is running at http://localhost:${process.env.PORT}`);
 });
