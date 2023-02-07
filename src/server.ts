@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import http from 'http';
+import { socketService } from './services/socket.service';
 
 dotenv.config();
 const app = express();
@@ -28,7 +29,6 @@ app.use(cors(corsOptions));
 
 import chatRoutes from './api/chat/chat.routes';
 import fileRoutes from './api/file/file.routes';
-import { socketService } from './services/socket.service';
 
 app.use('/api/chat', chatRoutes);
 app.use('/api/file', fileRoutes);
