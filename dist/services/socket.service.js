@@ -33,7 +33,7 @@ function setupSocketAPI(http) {
         },
     });
     gIo.on('connection', (socket) => {
-        logger_service_1.default.info(`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}]`);
+        logger_service_1.default.info(`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}] [topic: ${socket.handshake.query.topic}]`);
         socket.userId = socket.handshake.query.userId;
         socket.myTopic = socket.handshake.query.topic;
         socket.on(MySocketTypes.SET_USER_SOCKET, (userId) => {
@@ -65,18 +65,20 @@ function setupSocketAPI(http) {
             });
         });
         socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
-            var _a, _b;
+            var _a, _b, _c;
+            if (typeof ((_a = socket.userId) === null || _a === void 0 ? void 0 : _a._id) === 'string')
+                socket.userId = socket.userId._id;
             logger_service_1.default.info(`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${socket.userId}]`);
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id !== socket.userId) }),
                 userId: socket.userId,
             });
-            logger_service_1.default.info(`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${(_a = conversation.user.filter((user) => user._id !== socket.userId)) === null || _a === void 0 ? void 0 : _a[0]}`);
+            logger_service_1.default.info(`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${(_b = conversation.user.filter((user) => user._id !== socket.userId)) === null || _b === void 0 ? void 0 : _b[0]}`);
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id === socket.userId) }),
-                userId: (_b = conversation.user.filter((user) => user._id !== socket.userId)) === null || _b === void 0 ? void 0 : _b[0],
+                userId: (_c = conversation.user.filter((user) => user._id !== socket.userId)) === null || _c === void 0 ? void 0 : _c[0],
             });
         });
         socket.on('disconnect', () => {
@@ -94,11 +96,11 @@ function emitToUser({ type, data, userId, }) {
     return __awaiter(this, void 0, void 0, function* () {
         const socket = yield _getUserSocket(userId);
         if (socket) {
-            logger_service_1.default.info(`Emiting event: ${type} to user: ${userId} socket [id: ${socket.id}]`);
+            logger_service_1.default.info(`Emiting [event: ${type}] to [userId: ${userId}] socket [id: ${socket.id}]`);
             socket.emit(type, data);
         }
         else {
-            logger_service_1.default.info(`No active socket for user: ${JSON.stringify(userId)}`);
+            logger_service_1.default.info(`No active socket for [userId: ${userId}]`);
             _printSockets();
         }
     });

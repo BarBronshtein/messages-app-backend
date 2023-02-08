@@ -37,10 +37,10 @@ function setupSocketAPI(
 	});
 	gIo.on('connection', (socket: ISocket) => {
 		logger.info(
-			`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}]`
+			`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}] [topic: ${socket.handshake.query.topic}]`
 		);
 		socket.userId = socket.handshake.query.userId as string;
-		socket.myTopic = socket.handshake.query.topic as string | undefined;
+		socket.myTopic = socket.handshake.query.topic as string;
 		socket.on(MySocketTypes.SET_USER_SOCKET, (userId: string | ObjectId) => {
 			logger.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
 			socket.userId = userId;
@@ -69,6 +69,9 @@ function setupSocketAPI(
 			});
 		});
 		socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
+			if (typeof (socket.userId as any)?._id === 'string')
+				socket.userId = (socket.userId as any)._id!;
+
 			logger.info(
 				`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${socket.userId}]`
 			);
@@ -118,11 +121,11 @@ async function emitToUser({
 
 	if (socket) {
 		logger.info(
-			`Emiting event: ${type} to user: ${userId} socket [id: ${socket.id}]`
+			`Emiting [event: ${type}] to [userId: ${userId}] socket [id: ${socket.id}]`
 		);
 		socket.emit(type, data);
 	} else {
-		logger.info(`No active socket for user: ${JSON.stringify(userId)}`);
+		logger.info(`No active socket for [userId: ${userId}]`);
 		_printSockets();
 	}
 }
