@@ -77,6 +77,13 @@ function setupSocketAPI(
 				},
 				userId: socket.userId!,
 			});
+			logger.info(
+				`Emitting [event: ${
+					MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE
+				}] to [userId: ${
+					conversation.user.filter((user: any) => user._id !== socket.userId)?.[0]
+				}`
+			);
 			emitToUser({
 				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
 				data: {
@@ -85,7 +92,7 @@ function setupSocketAPI(
 				},
 				userId: conversation.user.filter(
 					(user: any) => user._id !== socket.userId
-				)[0],
+				)?.[0],
 			});
 		});
 		socket.on('disconnect', () => {
