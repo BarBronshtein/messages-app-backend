@@ -40,6 +40,7 @@ function setupSocketAPI(
 			`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}]`
 		);
 		socket.userId = socket.handshake.query.userId as string;
+		socket.myTopic = socket.handshake.query.topic as string | undefined;
 		socket.on(MySocketTypes.SET_USER_SOCKET, (userId: string | ObjectId) => {
 			logger.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
 			socket.userId = userId;
@@ -63,7 +64,7 @@ function setupSocketAPI(
 			broadcast({
 				type: MySocketTypes.SERVER_EMIT_ADD_MESSAGE,
 				data: msg,
-				room: socket.myTopic,
+				room: socket.myTopic || msg.chatId,
 				userId: socket.userId!,
 			});
 		});
@@ -82,7 +83,9 @@ function setupSocketAPI(
 					...conversation,
 					user: conversation.user.filter((user: any) => user._id === socket.userId),
 				},
-				userId: conversation.user.filter((user: any) => user._id !== socket.userId),
+				userId: conversation.user.filter(
+					(user: any) => user._id !== socket.userId
+				)[0],
 			});
 		});
 		socket.on('disconnect', () => {

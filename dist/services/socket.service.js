@@ -35,6 +35,7 @@ function setupSocketAPI(http) {
     gIo.on('connection', (socket) => {
         logger_service_1.default.info(`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}]`);
         socket.userId = socket.handshake.query.userId;
+        socket.myTopic = socket.handshake.query.topic;
         socket.on(MySocketTypes.SET_USER_SOCKET, (userId) => {
             logger_service_1.default.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
             socket.userId = userId;
@@ -59,7 +60,7 @@ function setupSocketAPI(http) {
             broadcast({
                 type: MySocketTypes.SERVER_EMIT_ADD_MESSAGE,
                 data: msg,
-                room: socket.myTopic,
+                room: socket.myTopic || msg.chatId,
                 userId: socket.userId,
             });
         });
@@ -72,7 +73,7 @@ function setupSocketAPI(http) {
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id === socket.userId) }),
-                userId: conversation.user.filter((user) => user._id !== socket.userId),
+                userId: conversation.user.filter((user) => user._id !== socket.userId)[0],
             });
         });
         socket.on('disconnect', () => {
