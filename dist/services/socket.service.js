@@ -33,7 +33,8 @@ function setupSocketAPI(http) {
         },
     });
     gIo.on('connection', (socket) => {
-        logger_service_1.default.info(`New connected socket [id: ${socket.id}]`);
+        logger_service_1.default.info(`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}]`);
+        socket.userId = socket.handshake.query.userId;
         socket.on(MySocketTypes.SET_USER_SOCKET, (userId) => {
             logger_service_1.default.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
             socket.userId = userId;

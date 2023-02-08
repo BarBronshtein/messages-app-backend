@@ -36,7 +36,10 @@ function setupSocketAPI(
 		},
 	});
 	gIo.on('connection', (socket: ISocket) => {
-		logger.info(`New connected socket [id: ${socket.id}]`);
+		logger.info(
+			`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}]`
+		);
+		socket.userId = socket.handshake.query.userId as string;
 		socket.on(MySocketTypes.SET_USER_SOCKET, (userId: string | ObjectId) => {
 			logger.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
 			socket.userId = userId;
