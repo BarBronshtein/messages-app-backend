@@ -68,18 +68,21 @@ function setupSocketAPI(
 			});
 		});
 		socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
-			logger.info(
-				`Socket event [${MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE}] received`
-			);
 			emitToUser({
 				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
-				data: conversation,
+				data: {
+					...conversation,
+					user: conversation.user.filter((user: any) => user._id !== socket.userId),
+				},
 				userId: socket.userId!,
 			});
 			emitToUser({
 				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
-				data: conversation,
-				userId: conversation.user[0]._id,
+				data: {
+					...conversation,
+					user: conversation.user.filter((user: any) => user._id === socket.userId),
+				},
+				userId: conversation.user.filter((user: any) => user._id !== socket.userId),
 			});
 		});
 		socket.on('disconnect', () => {
@@ -157,7 +160,7 @@ async function _printSockets() {
 }
 function _printSocket(socket: ISocket) {
 	console.log(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
-	logger.info(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
+	// logger.info(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
 }
 
 export const socketService = {
