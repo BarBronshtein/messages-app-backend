@@ -66,6 +66,7 @@ function setupSocketAPI(http) {
         });
         socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
             var _a, _b;
+            logger_service_1.default.info(`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${socket.userId}]`);
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id !== socket.userId) }),
@@ -97,7 +98,7 @@ function emitToUser({ type, data, userId, }) {
             socket.emit(type, data);
         }
         else {
-            logger_service_1.default.info(`No active socket for user: ${userId}`);
+            logger_service_1.default.info(`No active socket for user: ${JSON.stringify(userId)}`);
             _printSockets();
         }
     });

@@ -69,6 +69,9 @@ function setupSocketAPI(
 			});
 		});
 		socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
+			logger.info(
+				`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${socket.userId}]`
+			);
 			emitToUser({
 				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
 				data: {
@@ -119,7 +122,7 @@ async function emitToUser({
 		);
 		socket.emit(type, data);
 	} else {
-		logger.info(`No active socket for user: ${userId}`);
+		logger.info(`No active socket for user: ${JSON.stringify(userId)}`);
 		_printSockets();
 	}
 }
