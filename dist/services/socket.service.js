@@ -35,7 +35,7 @@ function setupSocketAPI(http) {
     gIo.on('connection', (socket) => {
         logger_service_1.default.info(`New connected socket [id: ${socket.id}]`);
         socket.on(MySocketTypes.SET_USER_SOCKET, (userId) => {
-            logger_service_1.default.info(`Setting socket.userId=${userId}for socket [id:${socket.id}]`);
+            logger_service_1.default.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
             socket.userId = userId;
         });
         socket.on(MySocketTypes.DISCONNET_USER_SOCKET, () => {
@@ -63,6 +63,7 @@ function setupSocketAPI(http) {
             });
         });
         socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
+            logger_service_1.default.info(`Socket event [${MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE}] received`);
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: conversation,
@@ -94,7 +95,7 @@ function emitToUser({ type, data, userId, }) {
         }
         else {
             logger_service_1.default.info(`No active socket for user: ${userId}`);
-            // _printSockets()
+            _printSockets();
         }
     });
 }
@@ -103,6 +104,7 @@ function emitToUser({ type, data, userId, }) {
 function broadcast({ type, data, room = null, userId, }) {
     return __awaiter(this, void 0, void 0, function* () {
         logger_service_1.default.info(`Broadcasting event: ${type}`);
+        _printSockets();
         const excludedSocket = yield _getUserSocket(userId);
         if (room && excludedSocket) {
             logger_service_1.default.info(`Broadcast to room ${room} excluding user: ${userId}`);
@@ -145,6 +147,7 @@ function _printSockets() {
 }
 function _printSocket(socket) {
     console.log(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
+    logger_service_1.default.info(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
 }
 exports.socketService = {
     // set up the sockets service and define the API

@@ -38,7 +38,7 @@ function setupSocketAPI(
 	gIo.on('connection', (socket: ISocket) => {
 		logger.info(`New connected socket [id: ${socket.id}]`);
 		socket.on(MySocketTypes.SET_USER_SOCKET, (userId: string | ObjectId) => {
-			logger.info(`Setting socket.userId=${userId}for socket [id:${socket.id}]`);
+			logger.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
 			socket.userId = userId;
 		});
 		socket.on(MySocketTypes.DISCONNET_USER_SOCKET, () => {
@@ -65,6 +65,9 @@ function setupSocketAPI(
 			});
 		});
 		socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
+			logger.info(
+				`Socket event [${MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE}] received`
+			);
 			emitToUser({
 				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
 				data: conversation,
@@ -101,7 +104,7 @@ async function emitToUser({
 		socket.emit(type, data);
 	} else {
 		logger.info(`No active socket for user: ${userId}`);
-		// _printSockets()
+		_printSockets();
 	}
 }
 
@@ -114,6 +117,7 @@ async function broadcast({
 	userId,
 }: MySocketAction & { userId: ObjectId | string }) {
 	logger.info(`Broadcasting event: ${type}`);
+	_printSockets();
 	const excludedSocket = await _getUserSocket(userId);
 	if (room && excludedSocket) {
 		logger.info(`Broadcast to room ${room} excluding user: ${userId}`);
@@ -150,6 +154,7 @@ async function _printSockets() {
 }
 function _printSocket(socket: ISocket) {
 	console.log(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
+	logger.info(`Socket - socketId: ${socket.id} userId: ${socket.userId}`);
 }
 
 export const socketService = {
