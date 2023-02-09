@@ -69,12 +69,6 @@ function setupSocketAPI(
 			});
 		});
 		socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
-			if (typeof (socket.userId as any)?._id === 'string')
-				socket.userId = (socket.userId as any)._id!;
-
-			logger.info(
-				`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${socket.userId}]`
-			);
 			emitToUser({
 				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
 				data: {
@@ -83,13 +77,6 @@ function setupSocketAPI(
 				},
 				userId: socket.userId!,
 			});
-			logger.info(
-				`Emitting [event: ${
-					MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE
-				}] to [userId: ${
-					conversation.user.filter((user: any) => user._id !== socket.userId)?.[0]
-				}`
-			);
 			emitToUser({
 				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
 				data: {
@@ -117,6 +104,8 @@ async function emitToUser({
 	data,
 	userId,
 }: MySocketAction & { userId: ObjectId | string }) {
+	if (typeof (userId as any)._id === 'string') userId = (userId as any)._id;
+
 	const socket = await _getUserSocket(userId);
 
 	if (socket) {

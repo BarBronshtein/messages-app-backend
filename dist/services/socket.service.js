@@ -65,20 +65,16 @@ function setupSocketAPI(http) {
             });
         });
         socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
-            var _a, _b, _c;
-            if (typeof ((_a = socket.userId) === null || _a === void 0 ? void 0 : _a._id) === 'string')
-                socket.userId = socket.userId._id;
-            logger_service_1.default.info(`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${socket.userId}]`);
+            var _a;
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id !== socket.userId) }),
                 userId: socket.userId,
             });
-            logger_service_1.default.info(`Emitting [event: ${MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE}] to [userId: ${(_b = conversation.user.filter((user) => user._id !== socket.userId)) === null || _b === void 0 ? void 0 : _b[0]}`);
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id === socket.userId) }),
-                userId: (_c = conversation.user.filter((user) => user._id !== socket.userId)) === null || _c === void 0 ? void 0 : _c[0],
+                userId: (_a = conversation.user.filter((user) => user._id !== socket.userId)) === null || _a === void 0 ? void 0 : _a[0],
             });
         });
         socket.on('disconnect', () => {
@@ -94,6 +90,8 @@ function emitTo({ type, data, label }) {
 }
 function emitToUser({ type, data, userId, }) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (typeof userId._id === 'string')
+            userId = userId._id;
         const socket = yield _getUserSocket(userId);
         if (socket) {
             logger_service_1.default.info(`Emiting [event: ${type}] to [userId: ${userId}] socket [id: ${socket.id}]`);
