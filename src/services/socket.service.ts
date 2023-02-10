@@ -3,6 +3,7 @@ import logger from './logger.service';
 import { Server, Socket } from 'socket.io';
 import { ObjectId } from 'mongodb';
 import { IncomingMessage, ServerResponse } from 'http';
+import axios from 'axios';
 
 interface ISocket extends Socket {
 	userId?: string | ObjectId;
@@ -30,11 +31,23 @@ let gIo = new Server();
 function setupSocketAPI(
 	http: http.Server<typeof IncomingMessage, typeof ServerResponse>
 ) {
-	gIo.attach(http, {
-		cors: {
-			origin: '*',
-		},
-	});
+	gIo
+		.attach(http, {
+			cookie: true,
+			cors: {
+				origin: 'http://localhost:5173',
+			},
+		})
+		.use(async (socket: ISocket, next) => {
+			// console.log(socket.request.headers);
+			try {
+				const { data } = await axios.get('https://yesno.wtf/api');
+				// logger.info(data.answer);
+			} catch (err) {
+			} finally {
+				next();
+			}
+		});
 	gIo.on('connection', (socket: ISocket) => {
 		logger.info(
 			`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}] [topic: ${socket.handshake.query.topic}]`

@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.socketService = void 0;
 const logger_service_1 = __importDefault(require("./logger.service"));
 const socket_io_1 = require("socket.io");
+const axios_1 = __importDefault(require("axios"));
 var MySocketTypes;
 (function (MySocketTypes) {
     MySocketTypes["SET_USER_SOCKET"] = "SET_USER_SOCKET";
@@ -27,11 +28,25 @@ var MySocketTypes;
 })(MySocketTypes || (MySocketTypes = {}));
 let gIo = new socket_io_1.Server();
 function setupSocketAPI(http) {
-    gIo.attach(http, {
+    gIo
+        .attach(http, {
+        cookie: true,
         cors: {
-            origin: '*',
+            origin: 'http://localhost:5173',
         },
-    });
+    })
+        .use((socket, next) => __awaiter(this, void 0, void 0, function* () {
+        // console.log(socket.request.headers);
+        try {
+            const { data } = yield axios_1.default.get('https://yesno.wtf/api');
+            // logger.info(data.answer);
+        }
+        catch (err) {
+        }
+        finally {
+            next();
+        }
+    }));
     gIo.on('connection', (socket) => {
         logger_service_1.default.info(`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}] [topic: ${socket.handshake.query.topic}]`);
         socket.userId = socket.handshake.query.userId;
