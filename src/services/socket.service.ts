@@ -36,14 +36,12 @@ function setupSocketAPI(
 			cookie: true,
 			cors: {
 				origin: ['http://localhost:5173', 'https://chattyapp.lol'],
-				credentials: true,
 			},
 		})
 		.use(async (socket: ISocket, next) => {
-			// console.log(socket.request.headers);
+			logger.info('Cookie ', socket.request.headers.cookie);
+			logger.info('Headers', socket.request.headers);
 			try {
-				const { data } = await axios.get('https://yesno.wtf/api');
-				// logger.info(data.answer);
 			} catch (err) {
 			} finally {
 				next();
