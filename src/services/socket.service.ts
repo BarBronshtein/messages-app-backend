@@ -35,7 +35,8 @@ function setupSocketAPI(
 		.attach(http, {
 			cookie: true,
 			cors: {
-				origin: 'http://localhost:5173',
+				origin: ['http://localhost:5173', 'https://chattyapp.lol'],
+				credentials: true,
 			},
 		})
 		.use(async (socket: ISocket, next) => {
