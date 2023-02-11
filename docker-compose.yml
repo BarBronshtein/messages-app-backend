@@ -1,0 +1,18 @@
+version: '3'
+services:
+ app:
+  container_name: app
+  image: latest123/app
+  restart: always
+  build: .
+  ports:
+   - '7050:7050'
+  links:
+   - mongo
+ mongo:
+  container_name: mongo
+  image: mongo
+  volumes:
+   - ./data:/data/db
+  ports:
+   - '27017:27017'

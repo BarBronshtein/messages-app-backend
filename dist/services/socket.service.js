@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.socketService = void 0;
 const logger_service_1 = __importDefault(require("./logger.service"));
 const socket_io_1 = require("socket.io");
-const axios_1 = __importDefault(require("axios"));
 var MySocketTypes;
 (function (MySocketTypes) {
     MySocketTypes["SET_USER_SOCKET"] = "SET_USER_SOCKET";
@@ -33,14 +32,13 @@ function setupSocketAPI(http) {
         cookie: true,
         cors: {
             origin: ['http://localhost:5173', 'https://chattyapp.lol'],
+            credentials: true,
         },
     })
         .use((socket, next) => __awaiter(this, void 0, void 0, function* () {
         logger_service_1.default.info('Cookie ', socket.request.headers.cookie);
         logger_service_1.default.info('Headers', socket.request.headers);
         try {
-            const { data } = yield axios_1.default.get('https://yesno.wtf/api');
-            // logger.info(data.answer);
         }
         catch (err) {
         }
