@@ -45,13 +45,12 @@ function setupSocketAPI(
 		})
 		.use(async (socket: ISocket, next) => {
 			const { cookie } = socket.request.headers;
-			const loginToken = (<any>cookie).loginToken;
 			try {
-				logger.info('loginToken', loginToken);
-				if (!loginToken) return next(new Error('Not Authenticated'));
+				logger.info('loginToken', cookie);
+				if (!cookie) return next(new Error('Not Authenticated'));
 				const res = await axios.get(
 					`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate`,
-					{ headers: { Cookie: `loginToken=${loginToken}` } }
+					{ headers: { Cookie: `loginToken=${cookie}` } }
 				);
 				logger.info(`response [status: ${res.status}] [data: ${res.data}]`);
 				if (res.status !== 200 || !res.data) {
