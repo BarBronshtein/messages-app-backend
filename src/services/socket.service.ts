@@ -45,8 +45,7 @@ function setupSocketAPI(
 		})
 		.use(async (socket: ISocket, next) => {
 			const { cookie } = socket.request.headers;
-			logger.info('Cookie ', cookie);
-			const loginToken = cookie?.split('loginToken=').at(-1);
+			const loginToken = (<any>cookie).loginToken;
 			try {
 				if (!loginToken) return next(new Error('Not Authenticated'));
 				const res = await axios.get(

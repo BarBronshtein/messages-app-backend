@@ -42,8 +42,7 @@ function setupSocketAPI(http) {
     })
         .use((socket, next) => __awaiter(this, void 0, void 0, function* () {
         const { cookie } = socket.request.headers;
-        logger_service_1.default.info('Cookie ', cookie);
-        const loginToken = cookie === null || cookie === void 0 ? void 0 : cookie.split('loginToken=').at(-1);
+        const loginToken = cookie.loginToken;
         try {
             if (!loginToken)
                 return next(new Error('Not Authenticated'));
