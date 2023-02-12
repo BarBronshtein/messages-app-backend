@@ -56,6 +56,7 @@ function setupSocketAPI(
 				if (res.status !== 200 || !res.data) {
 					next(new Error('Token is invalid'));
 				}
+				next();
 			} catch (err) {
 				logger.error('While verifying authorization', err);
 				next(new Error('An error occurred while verifying authorization'));
