@@ -44,9 +44,11 @@ function setupSocketAPI(http) {
         const { cookie } = socket.request.headers;
         const loginToken = cookie.loginToken;
         try {
+            logger_service_1.default.info('loginToken', loginToken);
             if (!loginToken)
                 return next(new Error('Not Authenticated'));
             const res = yield axios_1.default.get(`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate`, { headers: { Cookie: `loginToken=${loginToken}` } });
+            logger_service_1.default.info(`response [status: ${res.status}] [data: ${res.data}]`);
             if (res.status !== 200 || !res.data) {
                 next(new Error('Token is invalid'));
             }
