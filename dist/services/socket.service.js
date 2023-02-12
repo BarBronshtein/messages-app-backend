@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.socketService = void 0;
 const logger_service_1 = __importDefault(require("./logger.service"));
 const socket_io_1 = require("socket.io");
+const axios_1 = __importDefault(require("axios"));
 var MySocketTypes;
 (function (MySocketTypes) {
     MySocketTypes["SET_USER_SOCKET"] = "SET_USER_SOCKET";
@@ -31,19 +32,29 @@ function setupSocketAPI(http) {
         .attach(http, {
         cookie: true,
         cors: {
-            origin: ['http://localhost:5173', 'https://chattyapp.lol'],
+            origin: [
+                'http://localhost:5173',
+                'https://chattyapp.lol',
+                'https://d7he6ye4gz1us.cloudfront.net',
+            ],
             credentials: true,
         },
     })
         .use((socket, next) => __awaiter(this, void 0, void 0, function* () {
-        logger_service_1.default.info('Cookie ', socket.request.headers.cookie);
-        logger_service_1.default.info('Headers', socket.request.headers);
+        const { cookie } = socket.request.headers;
+        logger_service_1.default.info('Cookie ', cookie);
+        const loginToken = cookie === null || cookie === void 0 ? void 0 : cookie.split('loginToken=').at(-1);
         try {
+            if (!loginToken)
+                return next(new Error('Not Authenticated'));
+            const res = yield axios_1.default.get(`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate`, { headers: { Cookie: `loginToken=${loginToken}` } });
+            if (res.status !== 200 || !res.data) {
+                next(new Error('Token is invalid'));
+            }
         }
         catch (err) {
-        }
-        finally {
-            next();
+            logger_service_1.default.error('While verifying authorization', err);
+            next(new Error('An error occurred while verifying authorization'));
         }
     }));
     gIo.on('connection', (socket) => {

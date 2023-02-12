@@ -35,17 +35,30 @@ function setupSocketAPI(
 		.attach(http, {
 			cookie: true,
 			cors: {
-				origin: ['http://localhost:5173', 'https://chattyapp.lol'],
+				origin: [
+					'http://localhost:5173',
+					'https://chattyapp.lol',
+					'https://d7he6ye4gz1us.cloudfront.net',
+				],
 				credentials: true,
 			},
 		})
 		.use(async (socket: ISocket, next) => {
-			logger.info('Cookie ', socket.request.headers.cookie);
-			logger.info('Headers', socket.request.headers);
+			const { cookie } = socket.request.headers;
+			logger.info('Cookie ', cookie);
+			const loginToken = cookie?.split('loginToken=').at(-1);
 			try {
+				if (!loginToken) return next(new Error('Not Authenticated'));
+				const res = await axios.get(
+					`${process.env.REMOTE_AUTH_SERVICE_URL}/api/auth/authenticate`,
+					{ headers: { Cookie: `loginToken=${loginToken}` } }
+				);
+				if (res.status !== 200 || !res.data) {
+					next(new Error('Token is invalid'));
+				}
 			} catch (err) {
-			} finally {
-				next();
+				logger.error('While verifying authorization', err);
+				next(new Error('An error occurred while verifying authorization'));
 			}
 		});
 	gIo.on('connection', (socket: ISocket) => {

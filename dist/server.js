@@ -25,6 +25,7 @@ const corsOptions = {
         'http://localhost:5173',
         'http://localhost:5174',
         'https://chattyapp.lol',
+        'https://d7he6ye4gz1us.cloudfront.net',
     ],
     credentials: true,
 };
