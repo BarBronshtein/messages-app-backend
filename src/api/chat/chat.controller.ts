@@ -48,7 +48,10 @@ async function addMessage(req: Request, res: Response) {
 async function addChat(req: Request, res: Response) {
 	try {
 		const participants = req.body;
-		const addedChat = await chatService.add(participants);
+		const addedChat = await chatService.add(
+			participants,
+			res.locals.loggedinUser._id
+		);
 		res.json(addedChat);
 	} catch (err) {
 		logger.error('Failed to add chat', err);

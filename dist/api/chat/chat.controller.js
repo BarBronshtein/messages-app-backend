@@ -73,7 +73,7 @@ function addChat(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const participants = req.body;
-            const addedChat = yield chat_service_1.chatService.add(participants);
+            const addedChat = yield chat_service_1.chatService.add(participants, res.locals.loggedinUser._id);
             res.json(addedChat);
         }
         catch (err) {

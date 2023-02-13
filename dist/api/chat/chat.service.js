@@ -83,7 +83,7 @@ function update(chat, curUserId) {
         return updatedChat;
     });
 }
-function add(participants) {
+function add(participants, curUserId) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const chatId = yield _findByParticipants(participants);
@@ -95,14 +95,18 @@ function add(participants) {
                 messages: [],
                 participants: participants.map(user => user._id),
             });
-            const conversation = {
+            const conversationDocument = yield conversationCollection.insertOne({
                 chatId: insertedId,
                 participants,
                 lastMsg: '',
                 timestamp: null,
+            });
+            const conversationToSend = {
+                _id: conversationDocument.insertedId,
+                chatId: insertedId,
+                user: participants.filter(user => user._id !== curUserId),
+                lastMsg: { txt: '', timestamp: null },
             };
-            const conversationDocument = yield conversationCollection.insertOne(Object.assign({}, conversation));
-            const conversationToSend = Object.assign({ _id: conversationDocument.insertedId }, conversation);
             return { chatId: insertedId, conversation: conversationToSend };
         }
         catch (err) {

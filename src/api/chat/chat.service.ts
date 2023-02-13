@@ -75,7 +75,7 @@ async function update(chat: Chat, curUserId: ObjectId | string) {
 	return updatedChat;
 }
 
-async function add(participants: User[]) {
+async function add(participants: User[], curUserId: string | ObjectId) {
 	try {
 		const chatId = await _findByParticipants(participants);
 		if (chatId) return chatId;
@@ -85,18 +85,18 @@ async function add(participants: User[]) {
 			messages: [],
 			participants: participants.map(user => user._id),
 		});
-		const conversation = {
+
+		const conversationDocument = await conversationCollection.insertOne({
 			chatId: insertedId,
 			participants,
 			lastMsg: '',
 			timestamp: null,
-		};
-		const conversationDocument = await conversationCollection.insertOne({
-			...conversation,
 		});
 		const conversationToSend = {
 			_id: conversationDocument.insertedId,
-			...conversation,
+			chatId: insertedId,
+			user: participants.filter(user => user._id !== curUserId),
+			lastMsg: { txt: '', timestamp: null },
 		};
 		return { chatId: insertedId, conversation: conversationToSend };
 	} catch (err) {
