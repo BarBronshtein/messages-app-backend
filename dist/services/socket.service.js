@@ -82,7 +82,7 @@ function setupSocketAPI(http) {
             socket.myTopic = topic;
             logger_service_1.default.info(`Socket is joining topic ${socket.myTopic} [id: ${socket.id}]`);
         });
-        socket.on(MySocketTypes.CLIENT_EMIT_ADD_MESSAGE, msg => {
+        socket.on(MySocketTypes.CLIENT_EMIT_ADD_MESSAGE, (msg) => {
             broadcast({
                 type: MySocketTypes.SERVER_EMIT_ADD_MESSAGE,
                 data: msg,
@@ -90,8 +90,8 @@ function setupSocketAPI(http) {
                 userId: socket.userId,
             });
         });
-        socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
-            var _a;
+        socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, (conversation) => {
+            var _a, _b;
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id !== socket.userId) }),
@@ -100,7 +100,7 @@ function setupSocketAPI(http) {
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
                 data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id === socket.userId) }),
-                userId: (_a = conversation.user.filter((user) => user._id !== socket.userId)) === null || _a === void 0 ? void 0 : _a[0],
+                userId: (_b = (_a = conversation.user.filter((user) => user._id !== socket.userId)) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b._id,
             });
         });
         socket.on('disconnect', () => {
@@ -116,8 +116,6 @@ function emitTo({ type, data, label }) {
 }
 function emitToUser({ type, data, userId, }) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (typeof userId._id === 'string')
-            userId = userId._id;
         const socket = yield _getUserSocket(userId);
         if (socket) {
             logger_service_1.default.info(`Emiting [event: ${type}] to [userId: ${userId}] socket [id: ${socket.id}]`);

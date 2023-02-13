@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import { ObjectId } from 'mongodb';
+import { Chat, Message, User } from '../../models';
 import { getCollection } from '../../services/db.service';
 import logger from '../../services/logger.service';
 
@@ -12,12 +13,6 @@ export const chatService = {
 	update,
 	addMessage,
 };
-
-type Chat = {
-	_id: ObjectId;
-	messages: any[];
-};
-type User = any;
 
 async function query(user: User) {
 	try {
@@ -80,7 +75,7 @@ async function update(chat: Chat, curUserId: ObjectId | string) {
 	return updatedChat;
 }
 
-async function add(participants: { _id: string | ObjectId; photo: string }[]) {
+async function add(participants: User[]) {
 	try {
 		const chatId = await _findByParticipants(participants);
 		if (chatId) return chatId;
@@ -104,7 +99,7 @@ async function add(participants: { _id: string | ObjectId; photo: string }[]) {
 		throw err;
 	}
 }
-async function addMessage(message: any, chatId: ObjectId | string) {
+async function addMessage(message: Message, chatId: ObjectId | string) {
 	try {
 		const chatCollection = await getCollection('chat');
 		const chat = await chatCollection.findOne({ _id: new ObjectId(chatId) });

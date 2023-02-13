@@ -1,9 +1,11 @@
+import { SocketConversation } from './../models/Conversation';
 import http from 'http';
 import logger from './logger.service';
 import { Server, Socket } from 'socket.io';
 import { ObjectId } from 'mongodb';
 import { IncomingMessage, ServerResponse } from 'http';
 import axios from 'axios';
+import { SocketMessage, User } from '../models';
 
 interface ISocket extends Socket {
 	userId?: string | ObjectId;
@@ -87,7 +89,7 @@ function setupSocketAPI(
 			socket.myTopic = topic;
 			logger.info(`Socket is joining topic ${socket.myTopic} [id: ${socket.id}]`);
 		});
-		socket.on(MySocketTypes.CLIENT_EMIT_ADD_MESSAGE, msg => {
+		socket.on(MySocketTypes.CLIENT_EMIT_ADD_MESSAGE, (msg: SocketMessage) => {
 			broadcast({
 				type: MySocketTypes.SERVER_EMIT_ADD_MESSAGE,
 				data: msg,
@@ -95,26 +97,33 @@ function setupSocketAPI(
 				userId: socket.userId!,
 			});
 		});
-		socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, conversation => {
-			emitToUser({
-				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
-				data: {
-					...conversation,
-					user: conversation.user.filter((user: any) => user._id !== socket.userId),
-				},
-				userId: socket.userId!,
-			});
-			emitToUser({
-				type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
-				data: {
-					...conversation,
-					user: conversation.user.filter((user: any) => user._id === socket.userId),
-				},
-				userId: conversation.user.filter(
-					(user: any) => user._id !== socket.userId
-				)?.[0],
-			});
-		});
+		socket.on(
+			MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE,
+			(conversation: SocketConversation) => {
+				emitToUser({
+					type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
+					data: {
+						...conversation,
+						user: conversation.user.filter(
+							(user: User) => user._id !== socket.userId
+						),
+					},
+					userId: socket.userId!,
+				});
+				emitToUser({
+					type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
+					data: {
+						...conversation,
+						user: conversation.user.filter(
+							(user: User) => user._id === socket.userId
+						),
+					},
+					userId: conversation.user.filter(
+						(user: User) => user._id !== socket.userId
+					)?.[0]?._id,
+				});
+			}
+		);
 		socket.on('disconnect', () => {
 			logger.info(`Socket disconnected [id: ${socket.id}]`);
 		});
@@ -131,8 +140,6 @@ async function emitToUser({
 	data,
 	userId,
 }: MySocketAction & { userId: ObjectId | string }) {
-	if (typeof (userId as any)._id === 'string') userId = (userId as any)._id;
-
 	const socket = await _getUserSocket(userId);
 
 	if (socket) {
