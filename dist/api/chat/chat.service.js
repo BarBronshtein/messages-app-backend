@@ -95,13 +95,15 @@ function add(participants) {
                 messages: [],
                 participants: participants.map(user => user._id),
             });
-            conversationCollection.insertOne({
+            const conversation = {
                 chatId: insertedId,
                 participants,
                 lastMsg: '',
                 timestamp: null,
-            });
-            return insertedId;
+            };
+            const conversationDocument = yield conversationCollection.insertOne(Object.assign({}, conversation));
+            const conversationToSend = Object.assign({ _id: conversationDocument.insertedId }, conversation);
+            return { chatId: insertedId, conversation: conversationToSend };
         }
         catch (err) {
             console.log(err);

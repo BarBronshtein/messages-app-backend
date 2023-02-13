@@ -85,14 +85,20 @@ async function add(participants: User[]) {
 			messages: [],
 			participants: participants.map(user => user._id),
 		});
-
-		conversationCollection.insertOne({
+		const conversation = {
 			chatId: insertedId,
 			participants,
 			lastMsg: '',
 			timestamp: null,
+		};
+		const conversationDocument = await conversationCollection.insertOne({
+			...conversation,
 		});
-		return insertedId;
+		const conversationToSend = {
+			_id: conversationDocument.insertedId,
+			...conversation,
+		};
+		return { chatId: insertedId, conversation: conversationToSend };
 	} catch (err) {
 		console.log(err);
 		logger.error(`while adding chat`, err);
