@@ -51,6 +51,7 @@ function setupSocketAPI(http) {
             if (res.status !== 200 || !res.data) {
                 next(new Error('Token is invalid'));
             }
+            socket.data = res.data;
             next();
         }
         catch (err) {
@@ -59,9 +60,7 @@ function setupSocketAPI(http) {
         }
     }));
     gIo.on('connection', (socket) => {
-        logger_service_1.default.info(`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}] [topic: ${socket.handshake.query.topic}]`);
-        socket.userId = socket.handshake.query.userId;
-        socket.myTopic = socket.handshake.query.topic;
+        socket.userId = socket.data._id;
         socket.on(MySocketTypes.SET_USER_SOCKET, (userId) => {
             logger_service_1.default.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
             socket.userId = userId;
@@ -87,20 +86,20 @@ function setupSocketAPI(http) {
                 type: MySocketTypes.SERVER_EMIT_ADD_MESSAGE,
                 data: msg,
                 room: socket.myTopic || msg.chatId,
-                userId: socket.userId,
+                userId: socket.userId || socket.data._id,
             });
         });
         socket.on(MySocketTypes.CLIENT_EMIT_CONVERSATION_UPDATE, (conversation) => {
             var _a, _b;
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
-                data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id !== socket.userId) }),
-                userId: socket.userId,
+                data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id !== (socket.userId || socket.data._id)) }),
+                userId: socket.userId || socket.data._id,
             });
             emitToUser({
                 type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
-                data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id === socket.userId) }),
-                userId: (_b = (_a = conversation.user.filter((user) => user._id !== socket.userId)) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b._id,
+                data: Object.assign(Object.assign({}, conversation), { user: conversation.user.filter((user) => user._id === (socket.userId || socket.data._id)) }),
+                userId: (_b = (_a = conversation.user.filter((user) => user._id !== (socket.userId || socket.data._id))) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b._id,
             });
         });
         socket.on('disconnect', () => {

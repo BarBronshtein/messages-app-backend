@@ -58,6 +58,7 @@ function setupSocketAPI(
 				if (res.status !== 200 || !res.data) {
 					next(new Error('Token is invalid'));
 				}
+				socket.data = res.data;
 				next();
 			} catch (err) {
 				logger.error('While verifying authorization', err);
@@ -65,11 +66,7 @@ function setupSocketAPI(
 			}
 		});
 	gIo.on('connection', (socket: ISocket) => {
-		logger.info(
-			`New connected socket [id: ${socket.id}] with [userId: ${socket.handshake.query.userId}] [topic: ${socket.handshake.query.topic}]`
-		);
-		socket.userId = socket.handshake.query.userId as string;
-		socket.myTopic = socket.handshake.query.topic as string;
+		socket.userId = socket.data._id;
 		socket.on(MySocketTypes.SET_USER_SOCKET, (userId: string | ObjectId) => {
 			logger.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
 			socket.userId = userId;
@@ -94,7 +91,7 @@ function setupSocketAPI(
 				type: MySocketTypes.SERVER_EMIT_ADD_MESSAGE,
 				data: msg,
 				room: socket.myTopic || msg.chatId,
-				userId: socket.userId!,
+				userId: socket.userId || socket.data._id,
 			});
 		});
 		socket.on(
@@ -105,21 +102,21 @@ function setupSocketAPI(
 					data: {
 						...conversation,
 						user: conversation.user.filter(
-							(user: User) => user._id !== socket.userId
+							(user: User) => user._id !== (socket.userId || socket.data._id)
 						),
 					},
-					userId: socket.userId!,
+					userId: socket.userId || socket.data._id,
 				});
 				emitToUser({
 					type: MySocketTypes.SERVER_EMIT_CONVERSATION_UPDATE,
 					data: {
 						...conversation,
 						user: conversation.user.filter(
-							(user: User) => user._id === socket.userId
+							(user: User) => user._id === (socket.userId || socket.data._id)
 						),
 					},
 					userId: conversation.user.filter(
-						(user: User) => user._id !== socket.userId
+						(user: User) => user._id !== (socket.userId || socket.data._id)
 					)?.[0]?._id,
 				});
 			}
