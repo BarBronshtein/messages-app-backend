@@ -69,7 +69,7 @@ function setupSocketAPI(
 		socket.userId = socket.data._id;
 		socket.on(MySocketTypes.SET_USER_SOCKET, (userId: string | ObjectId) => {
 			logger.info(`Setting socket.userId=${userId} for socket [id:${socket.id}]`);
-			socket.userId = userId;
+			socket.userId = userId || socket.data._id;
 		});
 		socket.on(MySocketTypes.DISCONNET_USER_SOCKET, () => {
 			logger.info(`Removing socket.userId for socket [id: ${socket.id}]`);
