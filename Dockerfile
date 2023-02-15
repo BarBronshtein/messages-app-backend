@@ -10,6 +10,8 @@ COPY . /app
 
 EXPOSE 7050
 
-ENTRYPOINT ["node"]
+ENV NODE_ENV="development"
+ENV DB_NAME="chat_db"
 
+ENTRYPOINT ["node"]
 CMD ["node","dist/server.js"]

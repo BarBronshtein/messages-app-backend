@@ -7,12 +7,15 @@ services:
   build: .
   ports:
    - '7050:7050'
+  environment:
+   - DB_NAME='chat_db'
+   - NODE_ENV=development
   links:
    - mongo
  mongo:
   container_name: mongo
   image: mongo
-  volumes:
-   - ./data:/data/db
   ports:
    - '27017:27017'
+  volumes:
+   - ./data:/data/db
